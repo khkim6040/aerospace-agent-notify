@@ -1,7 +1,12 @@
 #!/bin/sh
 set -eu
 
-repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+script=$0
+while [ -L "$script" ]; do
+  link=$(readlink "$script")
+  case "$link" in /*) script=$link ;; *) script=$(dirname "$script")/$link ;; esac
+done
+repo_root=$(CDPATH= cd -- "$(dirname -- "$script")/.." && pwd)
 . "$repo_root/lib/aerospace.sh"
 . "$repo_root/lib/core.sh"
 . "$repo_root/adapters/terminals/iterm2.sh"
@@ -13,10 +18,12 @@ usage() {
 
 case "${1:-}" in
   doctor)
-    for command_name in aerospace osascript; do
-      if command -v "$command_name" >/dev/null 2>&1; then printf 'ok: %s\n' "$command_name"; else printf 'missing: %s\n' "$command_name"; fi
+    failed=0
+    for command_name in aerospace osascript python3 open; do
+      if command -v "$command_name" >/dev/null 2>&1; then printf 'ok: %s\n' "$command_name"; else printf 'missing: %s\n' "$command_name"; failed=1; fi
     done
-    exit 0
+    [ -x "$repo_root/adapters/agents/claude-code.sh" ] || { printf '%s\n' 'missing: Claude adapter'; failed=1; }
+    exit "$failed"
     ;;
   test-notification)
     aan_show_notification 'Test notification'

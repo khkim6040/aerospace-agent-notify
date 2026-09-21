@@ -8,8 +8,13 @@ aan_enqueue_workspace() {
   workspace=$1
   queue=$(aan_queue_file)
   mkdir -p "$(dirname "$queue")" 2>/dev/null || return 0
+  lock="$queue.lock"
+  ( umask 077; mkdir "$lock" 2>/dev/null ) || return 0
+  trap 'rmdir "$lock" 2>/dev/null' EXIT HUP INT TERM
   touch "$queue" 2>/dev/null || return 0
   grep -Fqx "$workspace" "$queue" 2>/dev/null || printf '%s\n' "$workspace" >> "$queue"
+  rmdir "$lock" 2>/dev/null
+  trap - EXIT HUP INT TERM
 }
 
 aan_show_notification() {

@@ -2,21 +2,24 @@
 
 import copy
 import json
+import os
+import shlex
+import stat
 import sys
 
-MARKER = "aerospace-agent-notify"
+MARKER = " # aerospace-agent-notify"
 
 
 def _owned(command):
-    return {"type": "command", "command": f"{command} # {MARKER}"}
+    return {"type": "command", "command": f"{shlex.quote(command)}{MARKER}"}
 
 
 def _strip_owned(groups):
     kept = []
     for group in groups:
         original_hooks = group.get("hooks", [])
-        hooks = [hook for hook in original_hooks if MARKER not in hook.get("command", "")]
-        if hooks or not any(MARKER in hook.get("command", "") for hook in original_hooks):
+        hooks = [hook for hook in original_hooks if not hook.get("command", "").endswith(MARKER)]
+        if hooks or not any(hook.get("command", "").endswith(MARKER) for hook in original_hooks):
             clone = copy.deepcopy(group)
             clone["hooks"] = hooks
             kept.append(clone)
@@ -51,7 +54,9 @@ def main(argv):
     except (OSError, json.JSONDecodeError):
         return 2
     result = install_hooks(settings, argv[3]) if argv[0] == "install" and len(argv) == 4 else remove_hooks(settings)
-    with open(argv[2], "w") as output:
+    mode = stat.S_IMODE(os.stat(argv[1]).st_mode)
+    fd = os.open(argv[2], os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode)
+    with os.fdopen(fd, "w") as output:
         json.dump(result, output, indent=2)
         output.write("\n")
     return 0
