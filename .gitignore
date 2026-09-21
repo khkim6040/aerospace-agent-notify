@@ -1,2 +1,5 @@
 # Local agent-development artifacts; retain locally, never publish.
 docs/superpowers/
+.DS_Store
+tests/.tmp/
+__pycache__/

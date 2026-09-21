@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+case "${1:-}" in
+  notify)
+    exit 0
+    ;;
+  *)
+    printf '%s\n' 'usage: aerospace-agent-notify {notify|doctor|test-notification}' >&2
+    exit 64
+    ;;
+esac
