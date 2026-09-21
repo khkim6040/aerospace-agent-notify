@@ -1,12 +1,28 @@
 #!/bin/sh
 set -eu
 
-case "${1:-}" in
-  notify)
-    exit 0
-    ;;
-  *)
-    printf '%s\n' 'usage: aerospace-agent-notify {notify|doctor|test-notification}' >&2
-    exit 64
-    ;;
-esac
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+. "$repo_root/lib/aerospace.sh"
+. "$repo_root/lib/core.sh"
+. "$repo_root/adapters/terminals/iterm2.sh"
+
+usage() {
+  printf '%s\n' 'usage: aerospace-agent-notify notify --terminal iterm2 --session-id ID --source NAME' >&2
+  exit 64
+}
+
+[ "${1:-}" = notify ] || usage
+shift
+terminal= session_id= source_name=
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --terminal) [ -z "$terminal" ] && [ "$#" -gt 1 ] || usage; terminal=$2; shift 2 ;;
+    --session-id) [ -z "$session_id" ] && [ "$#" -gt 1 ] || usage; session_id=$2; shift 2 ;;
+    --source) [ -z "$source_name" ] && [ "$#" -gt 1 ] || usage; source_name=$2; shift 2 ;;
+    *) usage ;;
+  esac
+done
+[ "$terminal" = iterm2 ] && [ -n "$session_id" ] && [ -n "$source_name" ] || usage
+window_id=$(aan_iterm2_window_for_session "$session_id")
+[ -n "$window_id" ] || exit 0
+aan_notify_window "$window_id"

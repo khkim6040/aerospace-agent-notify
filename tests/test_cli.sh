@@ -42,3 +42,20 @@ FAKE_FOCUSED=1 FAKE_WINDOWS='42 project alpha' run_notify 42
 rm -f "$AAN_QUEUE_FILE"
 FAKE_FOCUSED=1 FAKE_WINDOWS='99 another' run_notify 42
 [ ! -e "$AAN_QUEUE_FILE" ]
+
+: > "$OSASCRIPT_LOG"
+PATH="$repo_root/bin:$TEST_BIN:$PATH" ITERM_SESSION_ID='w0t0p0:ABC-123' \
+  "$repo_root/adapters/agents/claude-code.sh"
+grep -F 'ABC-123' "$OSASCRIPT_LOG"
+! grep -F 'w0t0p0:ABC-123' "$OSASCRIPT_LOG"
+
+PATH="$repo_root/bin:$TEST_BIN:$PATH" env -u ITERM_SESSION_ID \
+  "$repo_root/adapters/agents/claude-code.sh"
+
+set +e
+PATH="$repo_root/bin:$TEST_BIN:$PATH" "$repo_root/bin/aerospace-agent-notify" notify \
+  --terminal ghostty --session-id example --source test
+status=$?
+set -e
+[ "$status" = 64 ]
+[ ! -e "$AAN_QUEUE_FILE" ]
