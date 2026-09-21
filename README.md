@@ -2,8 +2,7 @@
 
 Native macOS notifications for AI-agent completions in an unfocused AeroSpace workspace.
 
-<img width="385" height="132" alt="image" src="https://github.com/user-attachments/assets/c2be50ee-822b-45bf-8a16-701cb72852e8" />
-
+<img width="385" height="132" alt="image" src="https://github.com/user-attachments/assets/b9ae7db2-6b0d-483e-88f5-dcacb0f5424e" />
 
 ## Supported environment
 
