@@ -59,3 +59,17 @@ status=$?
 set -e
 [ "$status" = 64 ]
 [ ! -e "$AAN_QUEUE_FILE" ]
+
+cat > "$TEST_BIN/open" <<'EOF'
+#!/bin/sh
+exit 0
+EOF
+chmod +x "$TEST_BIN/open"
+install_home="$tmp/install-home"
+mkdir -p "$install_home/.claude"
+printf '%s' '{"hooks":{"Stop":[{"hooks":[{"command":"other"}]}]}}' > "$install_home/.claude/settings.json"
+PATH="$TEST_BIN:$PATH" sh "$repo_root/install.sh" --home "$install_home"
+python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$install_home/.claude/settings.json"
+grep -F 'other' "$install_home/.claude/settings.json"
+grep -F 'aerospace-agent-notify' "$install_home/.claude/settings.json"
+find "$install_home/.claude" -name 'settings.json.aerospace-agent-notify.*.bak' | grep .
